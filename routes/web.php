@@ -2,6 +2,7 @@
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -12,17 +13,37 @@ Route::get('/signup', function () {
 });
 Route::get('/login', function () {
     return view('login');
-});
+})->name('login');
+// Signup user ko lagi
 Route::post('/store', function (Request $req) {
-    // Check the validation
-    $validData = $req->validate([
+    $req->validate([
         'email' => 'required',
         'username' => 'required',
         'password' => 'required',
     ]);
+    $parsedData = [
+        'email' => $req->email,
+        'password' => bcrypt($req->password),
+        'username' => $req->username,
+    ];
+    User::create($parsedData);
+    return redirect(route('login'));
+})->name('register-user');
 
-    //if no error 
-    User::create($validData);
 
-    return response('ok working, tata byee');
+Route::post('/signin', function (Request $req) {
+    $req->validate([
+        'email' => ['required', 'email'],
+        'password' => 'required',
+    ]);
+
+    if (Auth::attempt(['email' => $req->email, 'password' => $req->password])) {
+        // password is correct
+        dd('Login vayo');
+    } else {
+        // login failed
+        dd('login failed');
+    }
+
+    return response("la haiii, login garna layo tori le");
 });
